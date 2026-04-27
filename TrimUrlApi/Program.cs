@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Diagnostics;
 using System.Text;
 using TrimUrlApi.Database;
+using TrimUrlApi.Middleware;
 using TrimUrlApi.Repositories;
 using TrimUrlApi.Services;
 
@@ -82,6 +83,7 @@ namespace TrimUrlApi
             }
 
             app.UseHttpsRedirection();
+            app.UseMiddleware<ExceptionMiddleware>();
 
             app.UseAuthentication();
             app.UseAuthorization();
