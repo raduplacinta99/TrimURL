@@ -1,4 +1,6 @@
-﻿namespace TrimUrlApi.Middleware
+﻿using TrimUrlApi.Exceptions;
+
+namespace TrimUrlApi.Middleware
 {
     public class ExceptionMiddleware(RequestDelegate next)
     {
@@ -15,10 +17,14 @@
                 logger.LogError(ex, "Unhandled exception");
 
                 context.Response.ContentType = "application/json";
-                context.Response.StatusCode = ex switch
+                if (ex is ApiException apiEx)
                 {
-                    _ => StatusCodes.Status500InternalServerError
-                };
+                    context.Response.StatusCode = apiEx.StatusCode;
+                }
+                else
+                {
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                }
 
                 await context.Response.WriteAsJsonAsync(new
                 {
