@@ -17,15 +17,6 @@ namespace TrimUrlApi.Controllers
         public async Task<IActionResult> GetByCode(string code)
         {
             var getModel = await _shortUrlService.GetByCode(code);
-            if (getModel == null) 
-            {
-                return NotFound($"No URL found with code: {code}");
-            }
-
-            if (getModel.ExpiresAt < DateTime.Now)
-            {
-                return StatusCode(StatusCodes.Status410Gone, "URL expired");
-            }
             return Ok(getModel);
         }
 
@@ -35,11 +26,6 @@ namespace TrimUrlApi.Controllers
         {
             var creatorId = User.GetAuthUserId();
             var shortUrlList = await _shortUrlService.GetByCreatorId(creatorId);
-            if (creatorId == null || shortUrlList.Count == 0)
-            {
-                return NotFound($"No URLs found");
-            }
-
             return Ok(shortUrlList);
         }
 

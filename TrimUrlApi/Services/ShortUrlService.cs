@@ -1,6 +1,7 @@
 ﻿using TrimUrlApi.Entities;
 using TrimUrlApi.Models;
 using TrimUrlApi.Repositories;
+using TrimUrlApi.Exceptions;
 
 namespace TrimUrlApi.Services
 {
@@ -14,7 +15,11 @@ namespace TrimUrlApi.Services
             var shortUrl = await _suRepository.ReadByCode(code);
             if (shortUrl == null)
             {
-                return null;
+                throw new ShortUrlNotFoundByCodeException(code);
+            }
+            if (shortUrl.ExpiresAt < DateTime.Now)
+            {
+                throw new ShortUrlExpiredException();
             }
 
             shortUrl.AccessCount++;
@@ -25,6 +30,11 @@ namespace TrimUrlApi.Services
         public async Task<List<ShortUrlGetModel>> GetByCreatorId(int? id)
         {
             var shortUrlList = await _suRepository.ReadByCreatorId(id);
+            if (id == null || shortUrlList.Count == 0)
+            {
+                throw new ShortUrlsNotFoundException();
+            }
+
             return shortUrlList.Select(su => new ShortUrlGetModel(su)).ToList();
         }
 
