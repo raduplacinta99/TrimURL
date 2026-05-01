@@ -24,25 +24,20 @@ namespace TrimUrlApi.Controllers
         [HttpGet("me")]
         public async Task<IActionResult> GetByCreatorId()
         {
-            var creatorId = User.GetAuthUserId();
-            var shortUrlList = await _shortUrlService.GetByCreatorId(creatorId);
+            var userId = User.GetAuthUserId();
+            var shortUrlList = await _shortUrlService.GetByCreatorId(userId);
             return Ok(shortUrlList);
         }
 
         [HttpPost()]
         public async Task<IActionResult> Create(ShortUrlPostModel postModel)
         {
-            if (!_shortUrlService.IsValidUrl(postModel.Url))
-            {
-                return BadRequest($"Invalid URL string: {postModel.Url}");
-            }
-
-            int? creatorId = null;
+            int? userId = null;
             if (User.Identity?.IsAuthenticated == true)
             {
-                creatorId = User.GetAuthUserId();
+                userId = User.GetAuthUserId();
             }
-            var shortUrl = await _shortUrlService.Create(postModel, creatorId);
+            var shortUrl = await _shortUrlService.Create(postModel, userId);
             return Ok(shortUrl);
         }
 
@@ -50,17 +45,8 @@ namespace TrimUrlApi.Controllers
         [HttpPut("code/{code}")]
         public async Task<IActionResult> UpdateByCode(string code, ShortUrlPutModel putModel)
         {
-            if (!_shortUrlService.IsValidUrl(putModel.Url))
-            {
-                return BadRequest($"Invalid URL string: {putModel.Url}");
-            }
-
-            int? creatorId = User.GetAuthUserId();
-            var updatedShortUrl = await _shortUrlService.UpdateByCode(code, putModel, creatorId);
-            if (updatedShortUrl == null)
-            {
-                return Unauthorized();
-            }
+            int? userId = User.GetAuthUserId();
+            var updatedShortUrl = await _shortUrlService.UpdateByCode(code, putModel, userId);
             return Ok(updatedShortUrl);
         }
 

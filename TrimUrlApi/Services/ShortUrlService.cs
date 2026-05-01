@@ -38,16 +38,22 @@ namespace TrimUrlApi.Services
             return shortUrlList.Select(su => new ShortUrlGetModel(su)).ToList();
         }
 
-        public async Task<ShortUrl> Create(ShortUrlPostModel postModel, int? creatorId)
+        public async Task<ShortUrl> Create(ShortUrlPostModel postModel, int? userId)
         {
+            if (!IsValidUrl(postModel.Url))
+            {
+                throw new InvalidUrlStringException(postModel.Url);
+            }
+
             var code = GenerateCode();
             while (await _suRepository.ReadByCode(code) != null)
             {
                 code = GenerateCode();
             }
+
             var shortUrl = new ShortUrl
             {
-                CreatorId = creatorId,
+                CreatorId = userId,
                 Url = postModel.Url,
                 Code = code,
                 ExpiresAt = (postModel.ExpiresAt != DateTime.MaxValue) ? postModel.ExpiresAt : null,
@@ -57,17 +63,22 @@ namespace TrimUrlApi.Services
             return shortUrl;
         }
 
-        public async Task<ShortUrl?> UpdateByCode(string code, ShortUrlPutModel putModel, int? creatorId)
+        public async Task<ShortUrl?> UpdateByCode(string code, ShortUrlPutModel putModel, int? userId)
         {
+            if (!IsValidUrl(putModel.Url))
+            {
+                throw new InvalidUrlStringException(putModel.Url);
+            }
+
             var shortUrl = await _suRepository.ReadByCode(code);
             if (shortUrl == null)
             {
-                return null;
+                throw new ShortUrlNotFoundByCodeException(code);
             }
 
-            if (shortUrl.CreatorId == null || shortUrl.CreatorId != creatorId)
+            if (shortUrl.CreatorId == null || shortUrl.CreatorId != userId)
             {
-                return null;
+                throw new ForbiddenShortUrlAccessException();
             }
 
             shortUrl.Url = putModel.Url;
