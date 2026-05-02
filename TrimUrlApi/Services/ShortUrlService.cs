@@ -90,17 +90,17 @@ namespace TrimUrlApi.Services
             return shortUrl;
         }
 
-        public async Task<ShortUrl?> DeleteByCode(string code, int? creatorId)
+        public async Task<ShortUrl?> DeleteByCode(string code, int? userId)
         {
             var shortUrl = await _suRepository.ReadByCode(code);
             if (shortUrl == null)
             {
-                return null;
+                throw new ShortUrlNotFoundByCodeException(code);
             }
 
-            if (shortUrl.CreatorId == null || shortUrl.CreatorId != creatorId)
+            if (shortUrl.CreatorId == null || shortUrl.CreatorId != userId)
             {
-                return null;
+                throw new ForbiddenShortUrlAccessException();
             }
 
             await _suRepository.DeleteById(shortUrl.Id);
@@ -112,7 +112,7 @@ namespace TrimUrlApi.Services
             var shortUrl = await _suRepository.ReadByCode(code);
             if (shortUrl == null)
             {
-                return null;
+                throw new ShortUrlNotFoundByCodeException(code);
             }
 
             await _suRepository.DeleteById(shortUrl.Id);

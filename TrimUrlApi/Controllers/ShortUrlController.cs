@@ -54,17 +54,8 @@ namespace TrimUrlApi.Controllers
         [HttpDelete("code/{code}")]
         public async Task<IActionResult> DeleteByCode(string code)
         {
-            if (await _shortUrlService.GetByCode(code) == null)
-            {
-                return NotFound($"No URL found with code: {code}");
-            }
-
-            int? creatorId = User.GetAuthUserId();
-            var deletedUrl = await _shortUrlService.DeleteByCode(code, creatorId);
-            if (deletedUrl == null)
-            {
-                return Unauthorized();
-            }
+            int? userId = User.GetAuthUserId();
+            await _shortUrlService.DeleteByCode(code, userId);
             return NoContent();
         }
 
@@ -77,11 +68,7 @@ namespace TrimUrlApi.Controllers
                 return Unauthorized();
             }
 
-            var deletedUrl = await _shortUrlService.DeleteByCode(code);
-            if (deletedUrl == null)
-            {
-                return NotFound($"No URL found with code: {code}");
-            }
+            await _shortUrlService.DeleteByCode(code);
             return NoContent();
         }
     }
