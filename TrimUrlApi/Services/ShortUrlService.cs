@@ -12,11 +12,8 @@ namespace TrimUrlApi.Services
 
         public async Task<ShortUrlGetModel?> GetByCode(string code)
         {
-            var shortUrl = await _suRepository.ReadByCode(code);
-            if (shortUrl == null)
-            {
-                throw new ShortUrlNotFoundByCodeException(code);
-            }
+            var shortUrl = await GetByCodeOrThrow(code);
+
             if (shortUrl.ExpiresAt < DateTime.Now)
             {
                 throw new ShortUrlExpiredException();
@@ -70,16 +67,8 @@ namespace TrimUrlApi.Services
                 throw new InvalidUrlStringException(putModel.Url);
             }
 
-            var shortUrl = await _suRepository.ReadByCode(code);
-            if (shortUrl == null)
-            {
-                throw new ShortUrlNotFoundByCodeException(code);
-            }
-
-            if (shortUrl.CreatorId == null || shortUrl.CreatorId != userId)
-            {
-                throw new ForbiddenShortUrlAccessException();
-            }
+            var shortUrl = await GetByCodeOrThrow(code);
+            EnsureOwnershipOrThrow(shortUrl, userId);
 
             shortUrl.Url = putModel.Url;
             if (putModel.ExpiresAt != DateTime.MaxValue)
@@ -92,16 +81,8 @@ namespace TrimUrlApi.Services
 
         public async Task<ShortUrl?> DeleteByCode(string code, int? userId)
         {
-            var shortUrl = await _suRepository.ReadByCode(code);
-            if (shortUrl == null)
-            {
-                throw new ShortUrlNotFoundByCodeException(code);
-            }
-
-            if (shortUrl.CreatorId == null || shortUrl.CreatorId != userId)
-            {
-                throw new ForbiddenShortUrlAccessException();
-            }
+            var shortUrl = await GetByCodeOrThrow(code);
+            EnsureOwnershipOrThrow(shortUrl, userId);
 
             await _suRepository.DeleteById(shortUrl.Id);
             return shortUrl;
@@ -109,11 +90,7 @@ namespace TrimUrlApi.Services
 
         public async Task<ShortUrl?> DeleteByCode(string code)
         {
-            var shortUrl = await _suRepository.ReadByCode(code);
-            if (shortUrl == null)
-            {
-                throw new ShortUrlNotFoundByCodeException(code);
-            }
+            var shortUrl = await GetByCodeOrThrow(code);
 
             await _suRepository.DeleteById(shortUrl.Id);
             return shortUrl;
@@ -123,6 +100,24 @@ namespace TrimUrlApi.Services
         {
             _ = Uri.TryCreate(url, UriKind.Absolute, out var uriResult);
             return uriResult != null && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+        }
+
+        private async Task<ShortUrl> GetByCodeOrThrow(string code)
+        {
+            var shortUrl = await _suRepository.ReadByCode(code);
+            if (shortUrl == null)
+            {
+                throw new ShortUrlNotFoundByCodeException(code);
+            }
+            return shortUrl;
+        }
+
+        private static void EnsureOwnershipOrThrow(ShortUrl shortUrl, int? userId)
+        {
+            if (shortUrl.CreatorId == null || shortUrl.CreatorId != userId)
+            {
+                throw new ForbiddenShortUrlAccessException();
+            }
         }
 
         private static string GenerateCode()
