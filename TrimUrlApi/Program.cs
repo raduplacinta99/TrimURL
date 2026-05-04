@@ -47,9 +47,9 @@ namespace TrimUrlApi
                 });
             });
             builder.Services.AddDbContext<MainDbContext>();
-            builder.Services.AddScoped<ShortUrlRepository>();
+            builder.Services.AddScoped<IShortUrlRepository, ShortUrlRepository>();
             builder.Services.AddScoped<ShortUrlService>();
-            builder.Services.AddScoped<UserRepository>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<UserService>();
             builder.Services.AddScoped<AuthenticationService>();
 

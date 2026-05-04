@@ -6,9 +6,9 @@ using TrimUrlApi.Repositories;
 
 namespace TrimUrlApi.Services
 {
-    public class UserService(UserRepository userRepository)
+    public class UserService(IUserRepository userRepository)
     {
-        private readonly UserRepository _userRepository = userRepository;
+        private readonly IUserRepository _userRepository = userRepository;
 
         public async Task<UserResponseModel> Create(UserPostModel postModel)
         {
