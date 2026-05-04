@@ -4,7 +4,7 @@ using TrimUrlApi.Entities;
 
 namespace TrimUrlApi.Repositories
 {
-    public class UserRepository(MainDbContext dbContext) : BaseRepository<User>(dbContext)
+    public class UserRepository(MainDbContext dbContext) : BaseRepository<User>(dbContext), IUserRepository
     {
         private readonly MainDbContext _dbContext = dbContext;
         private readonly DbSet<User> _dbSet = dbContext.Set<User>();

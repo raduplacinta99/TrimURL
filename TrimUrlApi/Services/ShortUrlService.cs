@@ -5,9 +5,9 @@ using TrimUrlApi.Exceptions;
 
 namespace TrimUrlApi.Services
 {
-    public class ShortUrlService(ShortUrlRepository suReporitory)
+    public class ShortUrlService(IShortUrlRepository suReporitory)
     {
-        private readonly ShortUrlRepository _suRepository = suReporitory;
+        private readonly IShortUrlRepository _suRepository = suReporitory;
         private static readonly Random _random = new();
 
         public async Task<ShortUrlGetModel?> GetByCode(string code)

@@ -10,10 +10,10 @@ using TrimUrlApi.Repositories;
 
 namespace TrimUrlApi.Services
 {
-    public class AuthenticationService(ILogger<ShortUrlController> logger, UserRepository userRepository, IConfiguration config)
+    public class AuthenticationService(ILogger<ShortUrlController> logger, IUserRepository userRepository, IConfiguration config)
     {
         private readonly ILogger<ShortUrlController> _logger = logger;
-        private readonly UserRepository _userRepository = userRepository;
+        private readonly IUserRepository _userRepository = userRepository;
         private readonly IConfiguration _config = config;
 
         public async Task<User?> GetUserByCredentials(LoginPostModel loginModel)

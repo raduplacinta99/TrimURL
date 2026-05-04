@@ -4,7 +4,7 @@ using TrimUrlApi.Entities;
 
 namespace TrimUrlApi.Repositories
 {
-    public class ShortUrlRepository(MainDbContext dbContext) : BaseRepository<ShortUrl>(dbContext)
+    public class ShortUrlRepository(MainDbContext dbContext) : BaseRepository<ShortUrl>(dbContext), IShortUrlRepository
     {
         private readonly MainDbContext _dbContext = dbContext;
         private readonly DbSet<ShortUrl> _dbSet = dbContext.Set<ShortUrl>();
