@@ -2,3 +2,6 @@ TrimUrlApi/.vs
 TrimUrlApi/bin
 TrimUrlApi/obj
 TrimUrlApi/*.db*
+TrimUrlApi.Tests/.vs
+TrimUrlApi.Tests/bin
+TrimUrlApi.Tests/obj
