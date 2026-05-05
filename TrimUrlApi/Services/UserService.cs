@@ -6,7 +6,7 @@ using TrimUrlApi.Repositories;
 
 namespace TrimUrlApi.Services
 {
-    public class UserService(IUserRepository userRepository)
+    public class UserService(IUserRepository userRepository) : IUserService
     {
         private readonly IUserRepository _userRepository = userRepository;
 

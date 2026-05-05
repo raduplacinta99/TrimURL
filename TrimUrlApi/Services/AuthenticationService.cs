@@ -10,7 +10,7 @@ using TrimUrlApi.Repositories;
 
 namespace TrimUrlApi.Services
 {
-    public class AuthenticationService(ILogger<ShortUrlController> logger, IUserRepository userRepository, IConfiguration config)
+    public class AuthenticationService(ILogger<ShortUrlController> logger, IUserRepository userRepository, IConfiguration config) : IAuthenticationService
     {
         private readonly ILogger<ShortUrlController> _logger = logger;
         private readonly IUserRepository _userRepository = userRepository;

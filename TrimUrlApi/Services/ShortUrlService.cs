@@ -5,7 +5,7 @@ using TrimUrlApi.Exceptions;
 
 namespace TrimUrlApi.Services
 {
-    public class ShortUrlService(IShortUrlRepository suReporitory)
+    public class ShortUrlService(IShortUrlRepository suReporitory) : IShortUrlService
     {
         private readonly IShortUrlRepository _suRepository = suReporitory;
         private static readonly Random _random = new();

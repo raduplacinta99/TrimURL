@@ -8,10 +8,10 @@ namespace TrimUrlApi.Controllers
 {
     [ApiController]
     [Route("short-urls")]
-    public class ShortUrlController(ILogger<ShortUrlController> logger, ShortUrlService shortUrlService) : ControllerBase
+    public class ShortUrlController(ILogger<ShortUrlController> logger, IShortUrlService shortUrlService) : ControllerBase
     {
         private readonly ILogger<ShortUrlController> _logger = logger;
-        private readonly ShortUrlService _shortUrlService = shortUrlService;
+        private readonly IShortUrlService _shortUrlService = shortUrlService;
 
         [HttpGet("code/{code}")]
         public async Task<IActionResult> GetByCode(string code)

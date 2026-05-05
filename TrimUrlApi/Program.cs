@@ -48,10 +48,10 @@ namespace TrimUrlApi
             });
             builder.Services.AddDbContext<MainDbContext>();
             builder.Services.AddScoped<IShortUrlRepository, ShortUrlRepository>();
-            builder.Services.AddScoped<ShortUrlService>();
+            builder.Services.AddScoped<IShortUrlService, ShortUrlService>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<UserService>();
-            builder.Services.AddScoped<AuthenticationService>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
             builder.Services.AddAuthentication(options =>
             {

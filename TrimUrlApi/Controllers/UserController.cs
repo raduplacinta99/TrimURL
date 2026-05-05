@@ -8,10 +8,10 @@ namespace TrimUrlApi.Controllers
 {
     [ApiController]
     [Route("users")]
-    public class UserController(ILogger<UserController> logger, UserService userService) : ControllerBase
+    public class UserController(ILogger<UserController> logger, IUserService userService) : ControllerBase
     {
         private readonly ILogger<UserController> _logger = logger;
-        private readonly UserService _userService = userService;
+        private readonly IUserService _userService = userService;
 
         [HttpPost()]
         public async Task<IActionResult> Create(UserPostModel postModel)

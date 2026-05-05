@@ -11,10 +11,10 @@ namespace TrimUrlApi.Controllers
 {
     [ApiController]
     [Route("login")]
-    public class AuthenticationController(ILogger<ShortUrlController> logger, AuthenticationService authService, IConfiguration config) : ControllerBase
+    public class AuthenticationController(ILogger<ShortUrlController> logger, IAuthenticationService authService, IConfiguration config) : ControllerBase
     {
         private readonly ILogger<ShortUrlController> _logger = logger;
-        private readonly AuthenticationService _authService = authService;
+        private readonly IAuthenticationService _authService = authService;
         private readonly IConfiguration _config = config;
 
         [HttpPost]
