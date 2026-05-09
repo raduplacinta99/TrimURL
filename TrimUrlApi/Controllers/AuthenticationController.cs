@@ -21,10 +21,6 @@ namespace TrimUrlApi.Controllers
         public async Task<IActionResult> Post(LoginPostModel loginModel)
         {
             var user = await _authService.GetUserByCredentials(loginModel);
-            if (user == null)
-            {
-                return Unauthorized("Invalid username or password.");
-            }
             var jwtToken = _authService.GenerateJwtToken(user);
             return Ok(jwtToken);
         }

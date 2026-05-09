@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using TrimUrlApi.Controllers;
 using TrimUrlApi.Entities;
+using TrimUrlApi.Exceptions;
 using TrimUrlApi.Models;
 using TrimUrlApi.Repositories;
 
@@ -21,13 +22,14 @@ namespace TrimUrlApi.Services
             var user = await _userRepository.ReadByUsername(loginModel.Username);
             if (user == null)
             {
-                return null;
+                throw new InvalidCredentialsException();
             }
+            
             var hasher = new PasswordHasher<string>();
             var result = hasher.VerifyHashedPassword("", user.PasswordHash, loginModel.Password);
             if (result != PasswordVerificationResult.Success)
             {
-                return null;
+                throw new InvalidCredentialsException();
             }
             return user;
         }
