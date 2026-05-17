@@ -68,7 +68,7 @@ namespace TrimUrlApi.Controllers
                 return Unauthorized();
             }
 
-            await _shortUrlService.DeleteByCode(code);
+            await _shortUrlService.DeleteByCodeAsAdmin(code);
             return NoContent();
         }
     }

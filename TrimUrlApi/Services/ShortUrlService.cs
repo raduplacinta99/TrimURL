@@ -88,7 +88,7 @@ namespace TrimUrlApi.Services
             return shortUrl;
         }
 
-        public async Task<ShortUrl?> DeleteByCode(string code)
+        public async Task<ShortUrl?> DeleteByCodeAsAdmin(string code)
         {
             var shortUrl = await GetByCodeOrThrow(code);
 

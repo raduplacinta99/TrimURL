@@ -10,6 +10,6 @@ namespace TrimUrlApi.Services
         Task<ShortUrl> Create(ShortUrlPostModel postModel, int? userId);
         Task<ShortUrl?> UpdateByCode(string code, ShortUrlPutModel putModel, int? userId);
         Task<ShortUrl?> DeleteByCode(string code, int? userId);
-        Task<ShortUrl?> DeleteByCode(string code);
+        Task<ShortUrl?> DeleteByCodeAsAdmin(string code);
     }
 }
