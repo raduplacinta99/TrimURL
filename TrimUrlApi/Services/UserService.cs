@@ -49,6 +49,10 @@ namespace TrimUrlApi.Services
             {
                 throw new MissingUserUpdateFieldsException(username);
             }
+            if (!await IsEmailAvailable(putModel.EmailAddress))
+            {
+                throw new UnavailableEmailException(putModel.EmailAddress);
+            }
             if (putModel.Password != null)
             {
                 user.PasswordHash = GenerateHash(putModel.Password);
