@@ -220,5 +220,39 @@ namespace TrimUrlApi.Tests.Services
 
             await Assert.ThrowsAsync<MissingUserUpdateFieldsException>(() => service.UpdateByUsername(ValidUsername, putModel));
         }
+
+        [Fact]
+        public async Task DeleteByUsername_ShouldReturnUser_WhenUserExists()
+        {
+            var repoMock = new Mock<IUserRepository>();
+            var service = new UserService(repoMock.Object);
+            var newEmail = "new@test.com";
+
+            var user = new User
+            {
+                Username = ValidUsername,
+                EmailAddress = "john@test.com",
+                FullName = "John Doe"
+            };
+
+            repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
+
+            var result = await service.DeleteByUsername(ValidUsername);
+
+            Assert.NotNull(result);
+            Assert.Equal(ValidUsername, result.Username);
+        }
+
+        [Fact]
+        public async Task DeleteByUsername_ShoulThrowException_WhenUserDoesNotExist()
+        {
+            var repoMock = new Mock<IUserRepository>();
+            var service = new UserService(repoMock.Object);
+
+            repoMock.Setup(r => r.ReadByUsername(InvalidUsername)).ReturnsAsync((User?)null);
+
+            await Assert.ThrowsAsync<UsernameNotFoundException>(() =>
+                service.DeleteByUsername(InvalidUsername));
+        }
     }
 }
