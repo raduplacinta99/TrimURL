@@ -13,12 +13,18 @@ namespace TrimUrlApi.Tests.Services
         private const string ValidUsername = "john";
         private const string InvalidUsername = "does-not-exist";
 
+        private readonly Mock<IUserRepository> _repoMock;
+        private readonly UserService _service;
+
+        public UserServiceTests()
+        {
+            _repoMock = new Mock<IUserRepository>();
+            _service = new UserService(_repoMock.Object);
+        }
+
         [Fact]
         public async Task Create_ShouldCreateUser_WhenUsernameAndEmailAreAvailable()
         {
-            var repoMock = new Mock<IUserRepository>();
-            var service = new UserService(repoMock.Object);
-
             var postModel = new UserPostModel
             {
                 Username = ValidUsername,
@@ -27,17 +33,17 @@ namespace TrimUrlApi.Tests.Services
                 FullName = "John Doe"
             };
 
-            repoMock.Setup(r => r.ReadByUsername(postModel.Username)).ReturnsAsync((User?)null);
-            repoMock.Setup(r => r.ReadByEmail(postModel.EmailAddress)).ReturnsAsync((User?)null);
+            _repoMock.Setup(r => r.ReadByUsername(postModel.Username)).ReturnsAsync((User?)null);
+            _repoMock.Setup(r => r.ReadByEmail(postModel.EmailAddress)).ReturnsAsync((User?)null);
 
             User? createdUser = null;
 
-            repoMock
+            _repoMock
                 .Setup(r => r.Create(It.IsAny<User>()))
                 .Callback<User>(u => createdUser = u)
                 .Returns(Task.CompletedTask);
 
-            var result = await service.Create(postModel);
+            var result = await _service.Create(postModel);
 
             Assert.NotNull(result);
             Assert.Equal(postModel.Username, result.Username);
@@ -49,9 +55,6 @@ namespace TrimUrlApi.Tests.Services
         [Fact]
         public async Task Create_ShouldThrowException_WhenUsernameAlreadyExists()
         {
-            var repoMock = new Mock<IUserRepository>();
-            var service = new UserService(repoMock.Object);
-
             var postModel = new UserPostModel
             {
                 Username = ValidUsername,
@@ -59,18 +62,15 @@ namespace TrimUrlApi.Tests.Services
                 EmailAddress = "john@test.com"
             };
 
-            repoMock.Setup(r => r.ReadByUsername(postModel.Username)).ReturnsAsync(new User());
+            _repoMock.Setup(r => r.ReadByUsername(postModel.Username)).ReturnsAsync(new User());
 
             await Assert.ThrowsAsync<UnavailableUsernameException>(
-                () => service.Create(postModel));
+                () => _service.Create(postModel));
         }
 
         [Fact]
         public async Task Create_ShouldThrowException_WhenEmailAlreadyExists()
         {
-            var repoMock = new Mock<IUserRepository>();
-            var service = new UserService(repoMock.Object);
-
             var postModel = new UserPostModel
             {
                 Username = ValidUsername,
@@ -78,18 +78,15 @@ namespace TrimUrlApi.Tests.Services
                 EmailAddress = "john@test.com"
             };
 
-            repoMock.Setup(r => r.ReadByEmail(postModel.EmailAddress)).ReturnsAsync(new User());
+            _repoMock.Setup(r => r.ReadByEmail(postModel.EmailAddress)).ReturnsAsync(new User());
 
             await Assert.ThrowsAsync<UnavailableEmailException>(
-                () => service.Create(postModel));
+                () => _service.Create(postModel));
         }
 
         [Fact]
         public async Task GetByUsername_ShouldReturnUserResponseModel_WhenUserExists()
         {
-            var repoMock = new Mock<IUserRepository>();
-            var service = new UserService(repoMock.Object);
-
             var user = new User
             {
                 Username = ValidUsername,
@@ -97,9 +94,9 @@ namespace TrimUrlApi.Tests.Services
                 FullName = "John Doe"
             };
 
-            repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
+            _repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
 
-            var result = await service.GetByUsername(ValidUsername);
+            var result = await _service.GetByUsername(ValidUsername);
 
             Assert.NotNull(result);
             Assert.Equal(ValidUsername, result.Username);
@@ -108,22 +105,16 @@ namespace TrimUrlApi.Tests.Services
         [Fact]
         public async Task GetByUsername_ShouldThrowException_WhenUserDoesNotExist()
         {
-            var repoMock = new Mock<IUserRepository>();
-            var service = new UserService(repoMock.Object);
-
-            repoMock.Setup(r => r.ReadByUsername(InvalidUsername)).ReturnsAsync((User?)null);
+            _repoMock.Setup(r => r.ReadByUsername(InvalidUsername)).ReturnsAsync((User?)null);
 
             await Assert.ThrowsAsync<UsernameNotFoundException>(() =>
-                service.GetByUsername(InvalidUsername));
+                _service.GetByUsername(InvalidUsername));
         }
 
         [Fact]
         public async Task UpdateByUsername_ShouldUpdateEmail_WhenEmailIsAvailable()
         {
-            var repoMock = new Mock<IUserRepository>();
-            var service = new UserService(repoMock.Object);
             var newEmail = "new@test.com";
-
             var user = new User
             {
                 Id = 1,
@@ -137,10 +128,10 @@ namespace TrimUrlApi.Tests.Services
                 EmailAddress = newEmail
             };
 
-            repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
-            repoMock.Setup(r => r.ReadByEmail(newEmail)).ReturnsAsync((User?)null);
+            _repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
+            _repoMock.Setup(r => r.ReadByEmail(newEmail)).ReturnsAsync((User?)null);
 
-            var result = await service.UpdateByUsername(ValidUsername, putModel);
+            var result = await _service.UpdateByUsername(ValidUsername, putModel);
 
             Assert.Equal(newEmail, user.EmailAddress);
         }
@@ -148,8 +139,6 @@ namespace TrimUrlApi.Tests.Services
         [Fact]
         public async Task UpdateByUsername_ShouldUpdatePassword()
         {
-            var repoMock = new Mock<IUserRepository>();
-            var service = new UserService(repoMock.Object);
             var newPassword = "newPassword123";
             var user = new User
             {
@@ -164,9 +153,9 @@ namespace TrimUrlApi.Tests.Services
                 Password = newPassword
             };
 
-            repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
+            _repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
 
-            await service.UpdateByUsername(ValidUsername, putModel);
+            await _service.UpdateByUsername(ValidUsername, putModel);
 
             Assert.NotEqual("oldhash", user.PasswordHash);
 
@@ -178,10 +167,8 @@ namespace TrimUrlApi.Tests.Services
         }
 
         [Fact]
-        public async Task Update_ShouldThrowException_WhenEmailAlreadyExists()
+        public async Task UpdateByUsername_ShouldThrowException_WhenEmailAlreadyExists()
         {
-            var repoMock = new Mock<IUserRepository>();
-            var service = new UserService(repoMock.Object);
             var user = new User
             {
                 Id = 1,
@@ -195,17 +182,15 @@ namespace TrimUrlApi.Tests.Services
                 EmailAddress = "john@test.com"
             };
 
-            repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
-            repoMock.Setup(r => r.ReadByEmail(putModel.EmailAddress)).ReturnsAsync(new User());
+            _repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
+            _repoMock.Setup(r => r.ReadByEmail(putModel.EmailAddress)).ReturnsAsync(new User());
 
-            await Assert.ThrowsAsync<UnavailableEmailException>(() => service.UpdateByUsername(ValidUsername, putModel));
+            await Assert.ThrowsAsync<UnavailableEmailException>(() => _service.UpdateByUsername(ValidUsername, putModel));
         }
 
         [Fact]
-        public async Task Update_ShouldThrowException_WhenMissingUpdateFields()
+        public async Task UpdateByUsername_ShouldThrowException_WhenMissingUpdateFields()
         {
-            var repoMock = new Mock<IUserRepository>();
-            var service = new UserService(repoMock.Object);
             var user = new User
             {
                 Id = 1,
@@ -216,16 +201,14 @@ namespace TrimUrlApi.Tests.Services
 
             var putModel = new UserPutModel();
 
-            repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
+            _repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
 
-            await Assert.ThrowsAsync<MissingUserUpdateFieldsException>(() => service.UpdateByUsername(ValidUsername, putModel));
+            await Assert.ThrowsAsync<MissingUserUpdateFieldsException>(() => _service.UpdateByUsername(ValidUsername, putModel));
         }
 
         [Fact]
         public async Task DeleteByUsername_ShouldReturnUser_WhenUserExists()
         {
-            var repoMock = new Mock<IUserRepository>();
-            var service = new UserService(repoMock.Object);
             var newEmail = "new@test.com";
 
             var user = new User
@@ -235,9 +218,9 @@ namespace TrimUrlApi.Tests.Services
                 FullName = "John Doe"
             };
 
-            repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
+            _repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
 
-            var result = await service.DeleteByUsername(ValidUsername);
+            var result = await _service.DeleteByUsername(ValidUsername);
 
             Assert.NotNull(result);
             Assert.Equal(ValidUsername, result.Username);
@@ -246,13 +229,10 @@ namespace TrimUrlApi.Tests.Services
         [Fact]
         public async Task DeleteByUsername_ShoulThrowException_WhenUserDoesNotExist()
         {
-            var repoMock = new Mock<IUserRepository>();
-            var service = new UserService(repoMock.Object);
-
-            repoMock.Setup(r => r.ReadByUsername(InvalidUsername)).ReturnsAsync((User?)null);
+            _repoMock.Setup(r => r.ReadByUsername(InvalidUsername)).ReturnsAsync((User?)null);
 
             await Assert.ThrowsAsync<UsernameNotFoundException>(() =>
-                service.DeleteByUsername(InvalidUsername));
+                _service.DeleteByUsername(InvalidUsername));
         }
     }
 }
