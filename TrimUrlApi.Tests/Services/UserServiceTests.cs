@@ -167,6 +167,21 @@ namespace TrimUrlApi.Tests.Services
         }
 
         [Fact]
+        public async Task UpdateByUsername_ShouldThrowException_WhenUserDoesNotExist()
+        {
+            _repoMock.Setup(r => r.ReadByUsername(InvalidUsername)).ReturnsAsync((User?)null);
+
+            var newEmail = "new@test.com";
+            var putModel = new UserPutModel
+            {
+                EmailAddress = newEmail
+            };
+
+            await Assert.ThrowsAsync<UsernameNotFoundException>(() =>
+                _service.UpdateByUsername(InvalidUsername, putModel));
+        }
+
+        [Fact]
         public async Task UpdateByUsername_ShouldThrowException_WhenEmailAlreadyExists()
         {
             var user = new User
