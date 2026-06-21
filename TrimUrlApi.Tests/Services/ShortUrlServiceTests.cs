@@ -19,21 +19,27 @@ namespace TrimUrlApi.Tests.Services
         private const int ValidCreatorId = 1;
         private const int InvalidCreatorId = 2;
 
+        private readonly Mock<IShortUrlRepository> _repoMock;
+        private readonly ShortUrlService _service;
+
+        public ShortUrlServiceTests()
+        {
+            _repoMock = new Mock<IShortUrlRepository>();
+            _service = new ShortUrlService(_repoMock.Object);
+        }
+
 
         [Fact]
         public async Task Create_ShouldReturnShortUrl_WhenUrlIsValid()
         {
-            var repoMock = new Mock<IShortUrlRepository>();
-            var service = new ShortUrlService(repoMock.Object);
-
             var postModel = new ShortUrlPostModel
             {
                 Url = ValidUrl
             };
 
-            repoMock.Setup(r => r.Create(It.IsAny<ShortUrl>())).Returns((ShortUrl s) => Task.FromResult(s));
+            _repoMock.Setup(r => r.Create(It.IsAny<ShortUrl>())).Returns((ShortUrl s) => Task.FromResult(s));
 
-            var result = await service.Create(postModel, null);
+            var result = await _service.Create(postModel, null);
 
             Assert.NotNull(result);
             Assert.Equal(ValidUrl, result.Url);
@@ -42,24 +48,18 @@ namespace TrimUrlApi.Tests.Services
         [Fact]
         public async Task Create_ShouldThrowException_WhenUrlIsInvalid()
         {
-            var repoMock = new Mock<IShortUrlRepository>();
-            var service = new ShortUrlService(repoMock.Object);
-
             var postModel = new ShortUrlPostModel
             {
                 Url = InvalidUrl
             };
 
             await Assert.ThrowsAsync<InvalidUrlStringException>(() =>
-                service.Create(postModel, null));
+                _service.Create(postModel, null));
         }
 
         [Fact]
         public async Task GetByCode_ShouldReturnShortUrl_WhenCodeExists()
         {
-            var repoMock = new Mock<IShortUrlRepository>();
-            var service = new ShortUrlService(repoMock.Object);
-
             var shortUrl = new ShortUrl
             {
                 Code = ValidCode,
@@ -67,9 +67,9 @@ namespace TrimUrlApi.Tests.Services
                 AccessCount = 0,
             };
 
-            repoMock.Setup(r => r.ReadByCode(ValidCode)).ReturnsAsync(shortUrl);
+            _repoMock.Setup(r => r.ReadByCode(ValidCode)).ReturnsAsync(shortUrl);
 
-            var result = await service.GetByCode(ValidCode);
+            var result = await _service.GetByCode(ValidCode);
 
             Assert.NotNull(result);
             Assert.Equal(ValidCode, result.Code);
@@ -80,21 +80,15 @@ namespace TrimUrlApi.Tests.Services
         [Fact]
         public async Task GetByCode_ShouldThrowException_WhenCodeDoesNotExist()
         {
-            var repoMock = new Mock<IShortUrlRepository>();
-            var service = new ShortUrlService(repoMock.Object);
-
-            repoMock.Setup(r => r.ReadByCode(MissingCode)).ReturnsAsync((ShortUrl?)null);
+            _repoMock.Setup(r => r.ReadByCode(MissingCode)).ReturnsAsync((ShortUrl?)null);
 
             await Assert.ThrowsAsync<ShortUrlNotFoundByCodeException>(() =>
-                service.GetByCode(MissingCode));
+                _service.GetByCode(MissingCode));
         }
 
         [Fact]
         public async Task GetByCode_ShouldThrowException_WhenCodeIsExpired()
         {
-            var repoMock = new Mock<IShortUrlRepository>();
-            var service = new ShortUrlService(repoMock.Object);
-
             var shortUrl = new ShortUrl
             {
                 Code = ValidCode,
@@ -102,18 +96,15 @@ namespace TrimUrlApi.Tests.Services
                 ExpiresAt = DateTime.Parse("January 15, 2000")
             };
 
-            repoMock.Setup(r => r.ReadByCode(ValidCode)).ReturnsAsync(shortUrl);
+            _repoMock.Setup(r => r.ReadByCode(ValidCode)).ReturnsAsync(shortUrl);
 
             await Assert.ThrowsAsync<ShortUrlExpiredException>(() =>
-                service.GetByCode(ValidCode));
+                _service.GetByCode(ValidCode));
         }
 
         [Fact]
         public async Task GetByCreatorId_ShouldReturnShortUrls_WhenCreatorExists()
         {
-            var repoMock = new Mock<IShortUrlRepository>();
-            var service = new ShortUrlService(repoMock.Object);
-
             var shortUrlList = new List<ShortUrl> {
                 new() {
                     Code = "def456",
@@ -128,9 +119,9 @@ namespace TrimUrlApi.Tests.Services
 
             };
 
-            repoMock.Setup(r => r.ReadByCreatorId(ValidCreatorId)).ReturnsAsync(shortUrlList);
+            _repoMock.Setup(r => r.ReadByCreatorId(ValidCreatorId)).ReturnsAsync(shortUrlList);
 
-            var result = await service.GetByCreatorId(ValidCreatorId);
+            var result = await _service.GetByCreatorId(ValidCreatorId);
 
             Assert.NotNull(result);
             Assert.Equal(shortUrlList.Count, result.Count);
@@ -146,21 +137,15 @@ namespace TrimUrlApi.Tests.Services
         [Fact]
         public async Task GetByCreatorId_ShouldThrowException_WhenCreatorDoesNotExist()
         {
-            var repoMock = new Mock<IShortUrlRepository>();
-            var service = new ShortUrlService(repoMock.Object);
-
-            repoMock.Setup(r => r.ReadByCreatorId(InvalidCreatorId)).ReturnsAsync((List<ShortUrl>)[]);
+            _repoMock.Setup(r => r.ReadByCreatorId(InvalidCreatorId)).ReturnsAsync((List<ShortUrl>)[]);
 
             await Assert.ThrowsAsync<ShortUrlsNotFoundException>(() =>
-                service.GetByCreatorId(InvalidCreatorId));
+                _service.GetByCreatorId(InvalidCreatorId));
         }
 
         [Fact]
         public async Task UpdateByCode_ShouldReturnShortUrl_WhenCodeExists()
         {
-            var repoMock = new Mock<IShortUrlRepository>();
-            var service = new ShortUrlService(repoMock.Object);
-
             var shortUrl = new ShortUrl
             {
                 Code = ValidCode,
@@ -180,11 +165,11 @@ namespace TrimUrlApi.Tests.Services
                 CreatorId = shortUrl.CreatorId
             };
 
-            repoMock.Setup(r => r.ReadByCode(ValidCode)).ReturnsAsync(shortUrl);
-            repoMock.Setup(r => r.Update(It.IsAny<ShortUrl>())).Returns((ShortUrl s) => Task.FromResult(s));
+            _repoMock.Setup(r => r.ReadByCode(ValidCode)).ReturnsAsync(shortUrl);
+            _repoMock.Setup(r => r.Update(It.IsAny<ShortUrl>())).Returns((ShortUrl s) => Task.FromResult(s));
 
 
-            var result = await service.UpdateByCode(ValidCode, putModel, ValidCreatorId);
+            var result = await _service.UpdateByCode(ValidCode, putModel, ValidCreatorId);
 
             Assert.NotNull(result);
             Assert.Equal(shortUrl.Code, result.Code);
@@ -195,42 +180,33 @@ namespace TrimUrlApi.Tests.Services
         [Fact]
         public async Task UpdateByCode_ShouldThrowException_WhenCodeDoesNotExist()
         {
-            var repoMock = new Mock<IShortUrlRepository>();
-            var service = new ShortUrlService(repoMock.Object);
-
             var putModel = new ShortUrlPutModel
             {
                 Url = ValidUpdateUrl
             };
 
-            repoMock.Setup(r => r.ReadByCode(MissingCode)).ReturnsAsync((ShortUrl?)null);
-            repoMock.Setup(r => r.Update(It.IsAny<ShortUrl>())).Returns((ShortUrl s) => Task.FromResult(s));
+            _repoMock.Setup(r => r.ReadByCode(MissingCode)).ReturnsAsync((ShortUrl?)null);
+            _repoMock.Setup(r => r.Update(It.IsAny<ShortUrl>())).Returns((ShortUrl s) => Task.FromResult(s));
 
             await Assert.ThrowsAsync<ShortUrlNotFoundByCodeException>(() =>
-                service.UpdateByCode(MissingCode, putModel, ValidCreatorId));
+                _service.UpdateByCode(MissingCode, putModel, ValidCreatorId));
         }
 
         [Fact]
         public async Task UpdateByCode_ShouldThrowException_WhenUrlIsInvalid()
         {
-            var repoMock = new Mock<IShortUrlRepository>();
-            var service = new ShortUrlService(repoMock.Object);
-
             var putModel = new ShortUrlPutModel
             {
                 Url = InvalidUrl
             };
 
             await Assert.ThrowsAsync<InvalidUrlStringException>(() =>
-                service.UpdateByCode(ValidCode, putModel, ValidCreatorId));
+                _service.UpdateByCode(ValidCode, putModel, ValidCreatorId));
         }
 
         [Fact]
         public async Task UpdateByCode_ShouldThrowException_WhenInvalidCreatorId()
         {
-            var repoMock = new Mock<IShortUrlRepository>();
-            var service = new ShortUrlService(repoMock.Object);
-
             var shortUrl = new ShortUrl
             {
                 Code = ValidCode,
@@ -243,18 +219,16 @@ namespace TrimUrlApi.Tests.Services
                 Url = ValidUpdateUrl
             };
 
-            repoMock.Setup(r => r.ReadByCode(ValidCode)).ReturnsAsync(shortUrl);
-            repoMock.Setup(r => r.Update(It.IsAny<ShortUrl>())).Returns((ShortUrl s) => Task.FromResult(s));
+            _repoMock.Setup(r => r.ReadByCode(ValidCode)).ReturnsAsync(shortUrl);
+            _repoMock.Setup(r => r.Update(It.IsAny<ShortUrl>())).Returns((ShortUrl s) => Task.FromResult(s));
 
             await Assert.ThrowsAsync<ForbiddenShortUrlAccessException>(() =>
-                service.UpdateByCode(ValidCode, putModel, InvalidCreatorId));
+                _service.UpdateByCode(ValidCode, putModel, InvalidCreatorId));
         }
 
         [Fact]
         public async Task DeleteByCode_ShouldReturnShortUrl_WhenCodeExists()
         {
-            var repoMock = new Mock<IShortUrlRepository>();
-            var service = new ShortUrlService(repoMock.Object);
             var validId = 1;
 
             var shortUrl = new ShortUrl
@@ -265,10 +239,10 @@ namespace TrimUrlApi.Tests.Services
                 CreatorId = ValidCreatorId,
             };
 
-            repoMock.Setup(r => r.ReadByCode(ValidCode)).ReturnsAsync(shortUrl);
-            repoMock.Setup(r => r.DeleteById(It.IsAny<int>())).Returns(Task.CompletedTask);
+            _repoMock.Setup(r => r.ReadByCode(ValidCode)).ReturnsAsync(shortUrl);
+            _repoMock.Setup(r => r.DeleteById(It.IsAny<int>())).Returns(Task.CompletedTask);
 
-            var result = await service.DeleteByCode(ValidCode, ValidCreatorId);
+            var result = await _service.DeleteByCode(ValidCode, ValidCreatorId);
 
             Assert.NotNull(result);
             Assert.Equal(shortUrl.Id, result.Id);
@@ -280,22 +254,16 @@ namespace TrimUrlApi.Tests.Services
         [Fact]
         public async Task DeleteByCode_ShouldThrowException_WhenCodeDoesNotExist()
         {
-            var repoMock = new Mock<IShortUrlRepository>();
-            var service = new ShortUrlService(repoMock.Object);
-
-            repoMock.Setup(r => r.ReadByCode(MissingCode)).ReturnsAsync((ShortUrl?)null);
-            repoMock.Setup(r => r.DeleteById(It.IsAny<int>())).Returns(Task.CompletedTask);
+            _repoMock.Setup(r => r.ReadByCode(MissingCode)).ReturnsAsync((ShortUrl?)null);
+            _repoMock.Setup(r => r.DeleteById(It.IsAny<int>())).Returns(Task.CompletedTask);
 
             await Assert.ThrowsAsync<ShortUrlNotFoundByCodeException>(() =>
-                service.DeleteByCode(MissingCode, ValidCreatorId));
+                _service.DeleteByCode(MissingCode, ValidCreatorId));
         }
 
         [Fact]
         public async Task DeleteByCode_ShouldThrowException_WhenInvalidCreatorId()
         {
-            var repoMock = new Mock<IShortUrlRepository>();
-            var service = new ShortUrlService(repoMock.Object);
-
             var shortUrl = new ShortUrl
             {
                 Code = ValidCode,
@@ -303,18 +271,16 @@ namespace TrimUrlApi.Tests.Services
                 CreatorId = ValidCreatorId,
             };
 
-            repoMock.Setup(r => r.ReadByCode(ValidCode)).ReturnsAsync(shortUrl);
-            repoMock.Setup(r => r.DeleteById(It.IsAny<int>())).Returns(Task.CompletedTask);
+            _repoMock.Setup(r => r.ReadByCode(ValidCode)).ReturnsAsync(shortUrl);
+            _repoMock.Setup(r => r.DeleteById(It.IsAny<int>())).Returns(Task.CompletedTask);
 
             await Assert.ThrowsAsync<ForbiddenShortUrlAccessException>(() =>
-                service.DeleteByCode(ValidCode, InvalidCreatorId));
+                _service.DeleteByCode(ValidCode, InvalidCreatorId));
         }
 
         [Fact]
         public async Task DeleteByCodeAsAdmin_ShouldReturnShortUrl_WhenCodeExists()
         {
-            var repoMock = new Mock<IShortUrlRepository>();
-            var service = new ShortUrlService(repoMock.Object);
             var validId = 1;
 
             var shortUrl = new ShortUrl
@@ -324,10 +290,10 @@ namespace TrimUrlApi.Tests.Services
                 Url = ValidUrl,
             };
 
-            repoMock.Setup(r => r.ReadByCode(ValidCode)).ReturnsAsync(shortUrl);
-            repoMock.Setup(r => r.DeleteById(It.IsAny<int>())).Returns(Task.CompletedTask);
+            _repoMock.Setup(r => r.ReadByCode(ValidCode)).ReturnsAsync(shortUrl);
+            _repoMock.Setup(r => r.DeleteById(It.IsAny<int>())).Returns(Task.CompletedTask);
 
-            var result = await service.DeleteByCodeAsAdmin(ValidCode);
+            var result = await _service.DeleteByCodeAsAdmin(ValidCode);
 
             Assert.NotNull(result);
             Assert.Equal(shortUrl.Id, result.Id);
@@ -338,14 +304,11 @@ namespace TrimUrlApi.Tests.Services
         [Fact]
         public async Task DeleteByCodeAsAdmin_ShouldThrowException_WhenCodeDoesNotExist()
         {
-            var repoMock = new Mock<IShortUrlRepository>();
-            var service = new ShortUrlService(repoMock.Object);
-
-            repoMock.Setup(r => r.ReadByCode(MissingCode)).ReturnsAsync((ShortUrl?)null);
-            repoMock.Setup(r => r.DeleteById(It.IsAny<int>())).Returns(Task.CompletedTask);
+            _repoMock.Setup(r => r.ReadByCode(MissingCode)).ReturnsAsync((ShortUrl?)null);
+            _repoMock.Setup(r => r.DeleteById(It.IsAny<int>())).Returns(Task.CompletedTask);
 
             await Assert.ThrowsAsync<ShortUrlNotFoundByCodeException>(() =>
-                service.DeleteByCodeAsAdmin(MissingCode));
+                _service.DeleteByCodeAsAdmin(MissingCode));
         }
     }
 }
