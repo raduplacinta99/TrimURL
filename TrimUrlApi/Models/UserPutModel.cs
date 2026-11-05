@@ -4,7 +4,8 @@ namespace TrimUrlApi.Models
 {
     public class UserPutModel
     {
-        public string? Password { get; set; } = null;
+        public string? CurrentPassword { get; set; } = null;
+        public string? NewPassword { get; set; } = null;
 
         [EmailAddress]
         [StringLength(254)]

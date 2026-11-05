@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System.Diagnostics;
 using TrimUrlApi.Entities;
 using TrimUrlApi.Enums;
 using TrimUrlApi.Exceptions;
@@ -9,9 +8,10 @@ using TrimUrlApi.Validators;
 
 namespace TrimUrlApi.Services
 {
-    public class UserService(IUserRepository userRepository) : IUserService
+    public class UserService(IUserRepository userRepository, IPasswordHasher<string> hasher) : IUserService
     {
         private readonly IUserRepository _userRepository = userRepository;
+        private readonly IPasswordHasher<string> _hasher = hasher;
 
         public async Task<UserResponseModel> Create(UserPostModel postModel)
         {
@@ -51,15 +51,22 @@ namespace TrimUrlApi.Services
         {
             var user = await GetByUsernameOrThrow(username);
 
-            if (putModel.Password == null && putModel.EmailAddress == null)
+            if (putModel.NewPassword == null && putModel.EmailAddress == null)
             {
                 throw new MissingUserUpdateFieldsException(username);
             }
 
-            if (putModel.Password != null)
+            if (putModel.CurrentPassword == null)
             {
-                UserValidator.ValidatePassword(putModel.Password);
-                user.PasswordHash = GenerateHash(putModel.Password);
+                throw new IncorrectPasswordException();
+            }
+
+            VerifyPassword(putModel.CurrentPassword, user.PasswordHash);
+
+            if (putModel.NewPassword != null)
+            {
+                UserValidator.ValidatePassword(putModel.NewPassword);
+                user.PasswordHash = GenerateHash(putModel.NewPassword);
             }
             if (putModel.EmailAddress != null)
             {
@@ -102,10 +109,18 @@ namespace TrimUrlApi.Services
             return user;
         }
 
-        private static string GenerateHash(string password)
+        private void VerifyPassword(string password, string passwordHash)
         {
-            var hasher = new PasswordHasher<string>();
-            return hasher.HashPassword("", password);
+            var result = _hasher.VerifyHashedPassword("", passwordHash, password);
+            if (result != PasswordVerificationResult.Success)
+            {
+                throw new IncorrectPasswordException();
+            }
+        }
+
+        private string GenerateHash(string password)
+        {
+            return _hasher.HashPassword("", password);
         }
     }
 }

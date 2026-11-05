@@ -52,7 +52,8 @@ namespace TrimUrlApi.IntegrationTests.Users
                 ApiRoutes.AuthenticatedUser,
                 new
                 {
-                    EmailAddress = "johnsmith@test.com",
+                    CurrentPassword = "Password123!",
+                    EmailAddress = "johnsmith@test.com"
                 });
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -85,7 +86,8 @@ namespace TrimUrlApi.IntegrationTests.Users
                 ApiRoutes.AuthenticatedUser,
                 new
                 {
-                    Password = "!P@ssw0rd&"
+                    CurrentPassword = "Password123!",
+                    NewPassword = "!P@ssw0rd&"
                 });
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -142,7 +144,8 @@ namespace TrimUrlApi.IntegrationTests.Users
                 ApiRoutes.AuthenticatedUser,
                 new
                 {
-                    EmailAddress = "johnny@test.com",
+                    CurrentPassword = "Password123!",
+                    EmailAddress = "johnny@test.com"
                 });
 
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);

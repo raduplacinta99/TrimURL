@@ -17,11 +17,13 @@ namespace TrimUrlApi.UnitTests.Services
 
         private readonly Mock<IUserRepository> _repoMock;
         private readonly UserService _service;
+        private readonly Mock<IPasswordHasher<string>> _hasher;
 
         public UserServiceTests()
         {
             _repoMock = new Mock<IUserRepository>();
-            _service = new UserService(_repoMock.Object);
+            _hasher = new Mock<IPasswordHasher<string>>();
+            _service = new UserService(_repoMock.Object, _hasher.Object);
         }
 
         [Fact]
@@ -37,6 +39,7 @@ namespace TrimUrlApi.UnitTests.Services
 
             _repoMock.Setup(r => r.ReadByUsername(postModel.Username)).ReturnsAsync((User?)null);
             _repoMock.Setup(r => r.ReadByEmail(postModel.EmailAddress)).ReturnsAsync((User?)null);
+            _hasher.Setup(h => h.HashPassword("", postModel.Password)).Returns("hashed-password");
 
             User? createdUser = null;
 
@@ -51,7 +54,7 @@ namespace TrimUrlApi.UnitTests.Services
             Assert.Equal(postModel.Username, result.Username);
             Assert.Equal(postModel.EmailAddress, result.EmailAddress);
             Assert.NotNull(createdUser);
-            Assert.NotEqual(postModel.Password, createdUser!.PasswordHash);
+            Assert.Equal("hashed-password", createdUser!.PasswordHash);
         }
 
         [Fact]
@@ -177,13 +180,16 @@ namespace TrimUrlApi.UnitTests.Services
                 EmailAddress = "old@test.com"
             };
 
+            var correctPassword = "!Correct-p@ssword";
             var putModel = new UserPutModel
             {
+                CurrentPassword = correctPassword,
                 EmailAddress = newEmail
             };
 
             _repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
             _repoMock.Setup(r => r.ReadByEmail(newEmail)).ReturnsAsync((User?)null);
+            _hasher.Setup(h => h.VerifyHashedPassword("", user.PasswordHash, correctPassword)).Returns(PasswordVerificationResult.Success);
 
             var result = await _service.UpdateByUsername(ValidUsername, putModel);
 
@@ -202,22 +208,21 @@ namespace TrimUrlApi.UnitTests.Services
                 EmailAddress = "john@test.com"
             };
 
+            var correctPassword = "!Correct-p@ssword";
             var putModel = new UserPutModel
             {
-                Password = newPassword
+                CurrentPassword = correctPassword,
+                NewPassword = newPassword
             };
 
             _repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
+            _hasher.Setup(h => h.VerifyHashedPassword("", user.PasswordHash, correctPassword)).Returns(PasswordVerificationResult.Success);
+            _hasher.Setup(h => h.HashPassword("", newPassword)).Returns("newhash");
 
             await _service.UpdateByUsername(ValidUsername, putModel);
 
             Assert.NotEqual("oldhash", user.PasswordHash);
-
-            var hasher = new PasswordHasher<string>();
-
-            var result = hasher.VerifyHashedPassword("",user.PasswordHash,newPassword);
-
-            Assert.Equal(PasswordVerificationResult.Success,result);
+            _hasher.Verify(h => h.HashPassword("", newPassword), Times.Once);
         }
 
         [Fact]
@@ -246,13 +251,16 @@ namespace TrimUrlApi.UnitTests.Services
                 EmailAddress = "old@test.com"
             };
 
+            var correctPassword = "!Correct-p@ssword";
             var putModel = new UserPutModel
             {
+                CurrentPassword = correctPassword,
                 EmailAddress = "john@test.com"
             };
 
             _repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
             _repoMock.Setup(r => r.ReadByEmail(putModel.EmailAddress)).ReturnsAsync(new User());
+            _hasher.Setup(h => h.VerifyHashedPassword("", user.PasswordHash, correctPassword)).Returns(PasswordVerificationResult.Success);
 
             await Assert.ThrowsAsync<UnavailableEmailException>(() => _service.UpdateByUsername(ValidUsername, putModel));
         }
@@ -286,12 +294,15 @@ namespace TrimUrlApi.UnitTests.Services
                 EmailAddress = "old@test.com"
             };
 
+            var correctPassword = "!Correct-p@ssword";
             var putModel = new UserPutModel
             {
-                Password = "weak-password"
+                CurrentPassword = correctPassword,
+                NewPassword = "weak-password"
             };
 
             _repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
+            _hasher.Setup(h => h.VerifyHashedPassword("", user.PasswordHash, correctPassword)).Returns(PasswordVerificationResult.Success);
 
             await Assert.ThrowsAsync<InvalidFieldException>(() => _service.UpdateByUsername(ValidUsername, putModel));
         }
