@@ -308,6 +308,53 @@ namespace TrimUrlApi.UnitTests.Services
         }
 
         [Fact]
+        public async Task UpdateByUsername_ShouldThrowException_WhenCurrentPasswordIsIncorrect()
+        {
+            var user = new User
+            {
+                Id = 1,
+                Username = ValidUsername,
+                PasswordHash = "oldhash",
+                EmailAddress = "old@test.com"
+            };
+
+            var wrongPassword = "!Wrong-p@ssword1";
+
+            var putModel = new UserPutModel
+            {
+                CurrentPassword = wrongPassword,
+                NewPassword = "PBawf!7ZXABqamkAzkXvR",
+                EmailAddress = "new@test.com"
+            };
+
+            _repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
+            _hasher.Setup(h => h.VerifyHashedPassword("", user.PasswordHash, wrongPassword)).Returns(PasswordVerificationResult.Failed);
+
+            await Assert.ThrowsAsync<IncorrectPasswordException>(() => _service.UpdateByUsername(ValidUsername, putModel));
+        }
+
+        [Fact]
+        public async Task UpdateByUsername_ShouldThrowException_WhenCurrentPasswordIsMissing()
+        {
+            var user = new User
+            {
+                Id = 1,
+                Username = ValidUsername,
+                PasswordHash = "oldhash",
+                EmailAddress = "old@test.com"
+            };
+
+            var putModel = new UserPutModel
+            {
+                EmailAddress = "new@test.com"
+            };
+
+            _repoMock.Setup(r => r.ReadByUsername(ValidUsername)).ReturnsAsync(user);
+
+            await Assert.ThrowsAsync<IncorrectPasswordException>(() => _service.UpdateByUsername(ValidUsername, putModel));
+        }
+
+        [Fact]
         public async Task DeleteByUsername_ShouldReturnUser_WhenUserExists()
         {
             var newEmail = "new@test.com";

@@ -94,6 +94,66 @@ namespace TrimUrlApi.IntegrationTests.Users
         }
 
         [Fact]
+        public async Task Update_ShouldReturnUnauthorized_WhenCurrentPasswordIsIncorrect()
+        {
+            await _factory.ResetDatabaseAsync();
+
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<MainDbContext>();
+
+            await DatabaseSeeder.SeedUserAsync(
+                db,
+                username: "john",
+                email: "john@test.com",
+                password: "Password123!",
+                fullName: "John Smith"
+            );
+
+            var token = await _client.LoginAndGetToken("john", "Password123!");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.PutAsJsonAsync(
+                ApiRoutes.AuthenticatedUser,
+                new
+                {
+                    CurrentPassword = "WrongPassword123!",
+                    NewPassword = "!P@ssw0rd&",
+                    EmailAddress = "johnsmith@test.com"
+                });
+
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Update_ShouldReturnUnauthorized_WhenCurrentPasswordIsMissing()
+        {
+            await _factory.ResetDatabaseAsync();
+
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<MainDbContext>();
+
+            await DatabaseSeeder.SeedUserAsync(
+                db,
+                username: "john",
+                email: "john@test.com",
+                password: "Password123!",
+                fullName: "John Smith"
+            );
+
+            var token = await _client.LoginAndGetToken("john", "Password123!");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.PutAsJsonAsync(
+                ApiRoutes.AuthenticatedUser,
+                new
+                {
+                    EmailAddress = "johnsmith@test.com"
+                });
+
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
         public async Task Update_ShouldReturnUnauthorized_WhenTokenIsMissng()
         {
             await _factory.ResetDatabaseAsync();
@@ -174,7 +234,8 @@ namespace TrimUrlApi.IntegrationTests.Users
                 ApiRoutes.AuthenticatedUser,
                 new
                 {
-                    Password = "weak_password",
+                    CurrentPassword = "Password123!",
+                    NewPassword = "weak_password",
                 });
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
