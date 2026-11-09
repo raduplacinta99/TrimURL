@@ -1,4 +1,4 @@
-name: CI/CD
+name: API CI/CD
 
 on:
   push:
@@ -16,6 +16,7 @@ on:
       - '**/*.md'
       - 'LICENSE'
       - '.gitignore'
+      - TrimUrlWebApp/**
 
 permissions:
   contents: read
