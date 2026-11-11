@@ -5,11 +5,12 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
-![Build](https://github.com/raduplacinta99/TrimURL/actions/workflows/dotnet-desktop.yml/badge.svg)
+![Build](https://github.com/raduplacinta99/TrimURL/actions/workflows/api.yml/badge.svg)
+![Build](https://github.com/raduplacinta99/TrimURL/actions/workflows/webapp.yml/badge.svg)
 
-TrimURL is a RESTful URL shortening API built with ASP.NET Core. It allows users to create, manage, and track shortened URLs while demonstrating modern backend development practices such as layered architecture, authentication, caching, unit testing, Docker, and CI/CD.
+TrimURL is a full-stack URL shortener built with ASP.NET Core and React. It allows users to create, manage, and track shortened URLs while demonstrating modern backend development practices such as layered architecture, authentication, caching, unit testing, Docker, and CI/CD.
 
-This project was built as part of my backend portfolio to showcase clean architecture and production-ready development practices.
+This project was built as part of my portfolio to showcase clean architecture and production-ready development practices.
 
 ## Live Demo
 
@@ -51,6 +52,10 @@ This project was built as part of my backend portfolio to showcase clean archite
 
 **Backend**
 - ASP.NET Core 8
+
+**Frontend**
+- React
+- Bootstrap
 
 **Database**
 - PostgreSQL
@@ -158,7 +163,6 @@ Every push to the `main` branch automatically:
 
 ## Future Improvements
 
-- Frontend Web Application
 - Custom short codes
 - Improved URL analytics (browsers, locations etc.)
 - QR code generation
