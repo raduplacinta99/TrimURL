@@ -18,11 +18,12 @@ export function ShortUrlCard({ shortUrl }: ShortUrlCardProps) {
       setTimeout(() => setCopied(false), 2000)
     } catch {
       setError('Could not copy, please copy the link manually.')
+      setTimeout(() => setError(null), 2000)
     }
   }
 
   return (
-    <div className="card shadow-sm border-success">
+    <div className={`card shadow-sm ${error ? "border-danger" : "border-success"}`}>
       <div className="card-body p-4">
         <h2 className="h6 text-body-secondary mb-2">Your short link</h2>
 
@@ -35,7 +36,7 @@ export function ShortUrlCard({ shortUrl }: ShortUrlCardProps) {
           />
           <button
             type="button"
-            className={`btn ${copied ? 'btn-success' : 'btn-outline-primary'}`}
+            className={`btn ${error ? 'btn-danger' : copied ? 'btn-success' : 'btn-outline-primary'}`}
             onClick={handleCopy}
           >
             {copied ? 'Copied!' : 'Copy'}
@@ -46,6 +47,13 @@ export function ShortUrlCard({ shortUrl }: ShortUrlCardProps) {
           Points to <a href={shortUrl.url} target="_blank" rel="noreferrer">{shortUrl.url}</a>
           {shortUrl.expiresAt && <> · expires {new Date(shortUrl.expiresAt).toLocaleString()}</>}
         </p>
+
+        {error && (
+          <div className="alert alert-danger mt-4 mb-0">
+            {error}
+          </div>
+        )}
+
       </div>
     </div>
   )
