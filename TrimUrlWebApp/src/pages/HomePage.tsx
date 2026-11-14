@@ -1,9 +1,28 @@
 import { useState } from 'react'
+import { createShortUrl, type ShortUrl } from '../api/shortUrls'
+import { ApiError } from '../api/client'
+import { ShortUrlCard } from '../components/ShortUrlCard'
 
 export function HomePage() {
-
   const [url, setUrl] = useState('')
   const [expiresAt, setExpiresAt] = useState('')
+  const [result, setResult] = useState<ShortUrl | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError(null)
+    setResult(null)
+    setLoading(true)
+    try {
+      setResult(await createShortUrl(url.trim(), expiresAt || undefined))
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Network error, is the API running?')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="row justify-content-center">
@@ -16,8 +35,7 @@ export function HomePage() {
         </div>
         <div className="card shadow-sm mb-4">
           <div className="card-body p-4">
-            <form noValidate>
-
+            <form noValidate onSubmit={handleSubmit}>
               <div className='mb-3'>
                 <label htmlFor="link-input" className="form-label fw-semibold">
                   Long URL
@@ -32,7 +50,6 @@ export function HomePage() {
                   onChange={(e) => setUrl(e.target.value)}
                 />
               </div>
-
               <div className='mb-3'>
                 <label htmlFor='exp-date-input' className="form-label fw-semibold">
                   Expires (optional)
@@ -47,16 +64,20 @@ export function HomePage() {
                   onChange={(e) => setExpiresAt(e.target.value)}
                 />
               </div>
-
+              {error && (
+                <div className="alert alert-danger" role="alert">
+                  {error}
+                </div>
+              )}
               <div className="d-grid">
-                <button type="submit" className="btn btn-primary btn-lg">
+                <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>
                   Shorten
                 </button>
               </div>
-
             </form>
           </div>
         </div>
+        {result && <ShortUrlCard shortUrl={result} />}
       </div>
     </div>
   )
