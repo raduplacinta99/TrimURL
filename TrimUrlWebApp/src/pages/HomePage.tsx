@@ -8,17 +8,27 @@ export function HomePage() {
   const [expiresAt, setExpiresAt] = useState('')
   const [result, setResult] = useState<ShortUrl | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [urlError, setUrlError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     setResult(null)
+    if (!url.trim()) {
+      setUrlError('Please enter a URL address.')
+      return
+    }
+    setUrlError(null)
     setLoading(true)
     try {
       setResult(await createShortUrl(url.trim(), expiresAt || undefined))
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Network error, is the API running?')
+    } catch (err: any) {
+      if (err.message.toLowerCase().startsWith("invalid url")) {
+        setUrlError('Invalid URL address.')
+      } else {
+        setError(err instanceof ApiError ? err.message : 'Network error, is the API running?')
+      }
     } finally {
       setLoading(false)
     }
@@ -42,13 +52,23 @@ export function HomePage() {
                 </label>
                 <input
                   id='link-input'
-                  className='form-control'
+                  className={`form-control${urlError ? ' is-invalid' : ''}`}
                   name='url'
                   type='url'
                   placeholder='https://example.com/'
                   value={url}
-                  onChange={(e) => setUrl(e.target.value)}
+                  aria-invalid={Boolean(urlError)}
+                  aria-describedby={urlError ? 'link-input-feedback' : undefined}
+                  onChange={(e) => {
+                    setUrl(e.target.value)
+                    setUrlError(null)
+                  }}
                 />
+                {urlError && (
+                  <div id='link-input-feedback' className='invalid-feedback'>
+                    {urlError}
+                  </div>
+                )}
               </div>
               <div className='mb-3'>
                 <label htmlFor='exp-date-input' className="form-label fw-semibold">

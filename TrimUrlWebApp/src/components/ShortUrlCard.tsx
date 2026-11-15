@@ -43,9 +43,11 @@ export function ShortUrlCard({ shortUrl }: ShortUrlCardProps) {
           </button>
         </div>
 
-        <p className="small text-body-secondary mb-0 text-truncate">
+        <p className="small text-body-secondary mb-2 text-truncate">
           Points to <a href={shortUrl.url} target="_blank" rel="noreferrer">{shortUrl.url}</a>
-          {shortUrl.expiresAt && <> · expires {new Date(shortUrl.expiresAt).toLocaleString()}</>}
+        </p>
+        <p className="small text-body-secondary mb-0 text-truncate">
+          {shortUrl.expiresAt && `Expires ${new Date(shortUrl.expiresAt).toLocaleString()}`}
         </p>
 
         {error && (
