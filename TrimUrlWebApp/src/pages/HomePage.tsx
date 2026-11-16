@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createShortUrl, type ShortUrl } from '../api/shortUrls'
 import { ApiError } from '../api/client'
 import { ShortUrlCard } from '../components/ShortUrlCard'
+import { FormField } from '../components/FormField'
 
 export function HomePage() {
   const [url, setUrl] = useState('')
@@ -46,44 +47,27 @@ export function HomePage() {
         <div className="card shadow-sm mb-4">
           <div className="card-body p-4">
             <form noValidate onSubmit={handleSubmit}>
-              <div className='mb-3'>
-                <label htmlFor="link-input" className="form-label fw-semibold">
-                  Long URL
-                </label>
-                <input
-                  id='link-input'
-                  className={`form-control${urlError ? ' is-invalid' : ''}`}
-                  name='url'
-                  type='url'
-                  placeholder='https://example.com/'
-                  value={url}
-                  aria-invalid={Boolean(urlError)}
-                  aria-describedby={urlError ? 'link-input-feedback' : undefined}
-                  onChange={(e) => {
-                    setUrl(e.target.value)
-                    setUrlError(null)
-                  }}
-                />
-                {urlError && (
-                  <div id='link-input-feedback' className='invalid-feedback'>
-                    {urlError}
-                  </div>
-                )}
-              </div>
-              <div className='mb-3'>
-                <label htmlFor='exp-date-input' className="form-label fw-semibold">
-                  Expires (optional)
-                </label>
-                <input
-                  id='exp-date-input'
-                  className='form-control'
-                  name='expiresAt'
-                  type='datetime-local'
-                  placeholder='https://example.com/'
-                  value={expiresAt}
-                  onChange={(e) => setExpiresAt(e.target.value)}
-                />
-              </div>
+              <FormField
+                id='link-input'
+                label='Long URL'
+                name='url'
+                type='url'
+                placeholder='https://example.com/'
+                value={url}
+                error={urlError}
+                onChange={(e) => {
+                  setUrl(e.target.value)
+                  setUrlError(null)
+                }}
+              />
+              <FormField
+                id='exp-date-input'
+                label='Expires (optional)'
+                name='expiresAt'
+                type='datetime-local'
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+              />
               {error && (
                 <div className="alert alert-danger" role="alert">
                   {error}
