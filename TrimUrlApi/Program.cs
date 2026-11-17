@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using TrimUrlApi.Database;
 using TrimUrlApi.Extensions;
+using TrimUrlApi.HealthChecks;
 using TrimUrlApi.Middleware;
 using TrimUrlApi.Repositories;
 using TrimUrlApi.Services;
@@ -63,6 +64,9 @@ namespace TrimUrlApi
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.Services.AddScoped<IPasswordHasher<string>, PasswordHasher<string>>();
 
+            builder.Services.AddHealthChecks()
+                .AddCheck<DatabaseHealthCheck>("database");
+
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -116,6 +120,7 @@ namespace TrimUrlApi
             app.UseRateLimiter();
 
             app.MapControllers();
+            app.MapHealthChecks("/health");
 
             app.Run();
         }
